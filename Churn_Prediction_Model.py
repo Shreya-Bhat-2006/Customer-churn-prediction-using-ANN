@@ -2,9 +2,11 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+from tensorflow import keras
 
 
- 
 df=pd.read_csv("Data.csv")
 df.drop('customerID',axis="columns",inplace=True)
 df=df[df.TotalCharges!=" "]
@@ -31,4 +33,21 @@ col_to_scale=["tenure","MonthlyCharges","TotalCharges"]
 
 Scalar=MinMaxScaler()
 df[col_to_scale]=Scalar.fit_transform(df[col_to_scale])
-print(df.head())
+
+
+
+
+X=df.drop("Churn",axis="columns")
+Y=df["Churn"]
+
+X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=0.2,random_state=5)
+
+model=keras.Sequential(
+    [
+        keras.layers.Dense(20,input_shape=(X_train.shape[1],),activation="relu"),
+        keras.layers.Dense(1,activation="sigmoid")
+    ]
+)
+
+model.compile(optimizer="adam",loss="binary_crossentropy",metrics=["accuracy"])
+model.fit(X_train,Y_train,epochs=100)
