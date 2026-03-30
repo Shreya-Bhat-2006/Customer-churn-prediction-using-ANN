@@ -1,11 +1,12 @@
 import pandas as pd
-from matplotlib import pyplot as plt
+from matplotlib import cm, pyplot as plt
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow import keras
-
+from sklearn.metrics import confusion_matrix, classification_report
+import seaborn as sn
 
 df=pd.read_csv("Data.csv")
 df.drop('customerID',axis="columns",inplace=True)
@@ -51,3 +52,17 @@ model=keras.Sequential(
 
 model.compile(optimizer="adam",loss="binary_crossentropy",metrics=["accuracy"])
 model.fit(X_train,Y_train,epochs=100)
+
+model.evaluate(X_test,Y_test)
+
+Y_pred = (model.predict(X_test) > 0.5).astype(int)
+Y_pred = Y_pred.flatten()
+
+print(classification_report(Y_test, Y_pred))
+cm = confusion_matrix(Y_test, Y_pred)
+
+plt.figure(figsize=(10,7))
+sn.heatmap(cm, annot=True, fmt='d')
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+plt.show()
