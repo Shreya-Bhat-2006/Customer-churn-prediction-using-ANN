@@ -34,6 +34,7 @@ col_to_scale=["tenure","MonthlyCharges","TotalCharges"]
 
 Scalar=MinMaxScaler()
 df[col_to_scale]=Scalar.fit_transform(df[col_to_scale])
+print(df["Churn"].value_counts())
 
 
 
@@ -45,17 +46,19 @@ X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=0.2,random_state=5)
 
 model=keras.Sequential(
     [
-        keras.layers.Dense(20,input_shape=(X_train.shape[1],),activation="relu"),
-        keras.layers.Dense(1,activation="sigmoid")
+        keras.layers.Dense(32,input_shape=(X_train.shape[1],),activation="relu"),
+        keras.layers.Dense(16, activation="relu"),
+        keras.layers.Dense(1, activation="sigmoid")
     ]
 )
 
 model.compile(optimizer="adam",loss="binary_crossentropy",metrics=["accuracy"])
-model.fit(X_train,Y_train,epochs=100)
+early_stop = keras.callbacks.EarlyStopping( monitor='val_loss', patience=5, restore_best_weights=True )
+model.fit(X_train,Y_train,epochs=100,validation_split=0.2,callbacks=[early_stop],class_weight={0:1, 1:2})
 
 model.evaluate(X_test,Y_test)
 
-Y_pred = (model.predict(X_test) > 0.5).astype(int)
+Y_pred = (model.predict(X_test) > 0.4).astype(int)
 Y_pred = Y_pred.flatten()
 
 print(classification_report(Y_test, Y_pred))
