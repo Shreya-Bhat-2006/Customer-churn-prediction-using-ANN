@@ -44,28 +44,53 @@ Y=df["Churn"]
 
 X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=0.2,random_state=5)
 
-model=keras.Sequential(
-    [
-        keras.layers.Dense(32,input_shape=(X_train.shape[1],),activation="relu"),
-        keras.layers.Dense(16, activation="relu"),
-        keras.layers.Dense(1, activation="sigmoid")
-    ]
-)
+model = keras.Sequential([
+    keras.layers.Dense(32, activation="relu"),
+    keras.layers.Dropout(0.3),
+    keras.layers.Dense(16, activation="relu"),
+    keras.layers.Dense(1, activation="sigmoid")
+])
 
 model.compile(optimizer="adam",loss="binary_crossentropy",metrics=["accuracy"])
 early_stop = keras.callbacks.EarlyStopping( monitor='val_loss', patience=5, restore_best_weights=True )
-model.fit(X_train,Y_train,epochs=100,validation_split=0.2,callbacks=[early_stop],class_weight={0:1, 1:2})
+history = model.fit(
+    X_train,
+    Y_train,
+    epochs=100,
+    validation_split=0.2,
+    callbacks=[early_stop],
+    class_weight={0:1, 1:2}
+)
+plt.figure(figsize=(8,5))
 
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Training vs Validation Loss')
+
+plt.legend(['Train Loss', 'Validation Loss'])
+
+plt.show()
+plt.close() 
 model.evaluate(X_test,Y_test)
 
-Y_pred = (model.predict(X_test) > 0.4).astype(int)
-Y_pred = Y_pred.flatten()
 
-print(classification_report(Y_test, Y_pred))
-cm = confusion_matrix(Y_test, Y_pred)
+y_probs = model.predict(X_test)
 
-plt.figure(figsize=(10,7))
-sn.heatmap(cm, annot=True, fmt='d')
-plt.xlabel('Predicted')
-plt.ylabel('Truth')
-plt.show()
+for t in [0.3, 0.4, 0.5]:
+    Y_pred = (y_probs > t).astype(int)
+    print(f"Threshold: {t}")
+    print(classification_report(Y_test, Y_pred))
+
+    cm = confusion_matrix(Y_test, Y_pred)
+
+    plt.figure(figsize=(10,7))
+    sn.heatmap(cm, annot=True, fmt='d')
+    plt.title(f"Confusion Matrix (Threshold = {t})")
+    plt.xlabel('Predicted')
+    plt.ylabel('Truth')
+
+    plt.show()
+    plt.close()
