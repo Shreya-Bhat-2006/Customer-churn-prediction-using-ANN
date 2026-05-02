@@ -120,7 +120,11 @@ plt.ylabel('Truth')
 plt.show()
 plt.close()
 
+
+
+
 import joblib
 
 model.save("churn_model.h5")
 joblib.dump(scaler, "scaler.pkl")
+joblib.dump(X.columns.tolist(), "columns.pkl")
